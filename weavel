@@ -3,13 +3,33 @@ use common::sense;
 use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 use Pod::Usage;
 use File::Find;
+use Data::Dumper;
 
 
 sub usage () {
     pod2usage(-verbose => 1);
 }
 
+sub uneval {
+    local $Data::Dumper::Terse = 1;
+    local $Data::Dumper::Indent = 1;
+    Dumper(@_);
+}
 
+{
+    my $verbose = 0;
+
+    sub set_verbose {
+        $verbose = shift;
+    }
+
+    sub verbose {
+        $verbose and say STDERR "[verbose] ", @_;
+    }
+}
+
+
+my $verbose = 0;
 my $follow_symlinks = 0;
 my $check_directory = 0;
 my $needhelp;
@@ -17,8 +37,10 @@ GetOptions(
     'h|help' => \$needhelp,
     'l|follow-symlinks' => \$follow_symlinks,
     'd|directory' => \$check_directory,
+    'v|verbose' => \$verbose,
 ) or usage;
 usage if $needhelp;
+set_verbose $verbose;
 
 
 my @dirs = @ARGV ? @ARGV : (".");
@@ -28,12 +50,13 @@ my @dirs = @ARGV ? @ARGV : (".");
         0;
     };
 } @dirs;
+verbose '@dirs = ' . uneval(\@dirs);
 
 
 find({
     wanted => sub {
         return if !$check_directory && -d $_;
-        warn "hi: $_";
+        verbose "processing $_...";
     },
     follow => $follow_symlinks,
     no_chdir => 1,
