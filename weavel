@@ -66,11 +66,11 @@ set_verbose $verbose;
 
 if ($stragegy == $ST_COMPARE) {
     unless (@ARGV == 2) {
-        say STDERR "specify two directories.";
+        say STDERR "error: specify two directories.";
         usage;
     }
     unless (-d $ARGV[0] && -d $ARGV[1]) {
-        say STDERR "specify two directories.";
+        say STDERR "error: specify two directories.";
         usage;
     }
     compare_two_directories(@ARGV, $follow_symlinks);
