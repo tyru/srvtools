@@ -4,6 +4,13 @@ use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 use Pod::Usage;
 use File::Find;
 use Data::Dumper;
+use Readonly;
+
+
+
+Readonly::Scalar my $ST_COMPARE => 0;
+Readonly::Scalar my $ST_HASH    => 1;
+
 
 
 sub usage () {
@@ -28,16 +35,31 @@ sub uneval {
     }
 }
 
+sub compare_two_directories {
+    my ($dir1, $dir2, $check_directory, $follow_symlinks) = @_;
+    find({
+        wanted => sub {
+            return if !$check_directory && -d $_;
+            verbose "processing $_...";
+        },
+        follow => $follow_symlinks,
+        no_chdir => 1,
+    }, $dir1);
+}
+
 
 my $verbose = 0;
 my $follow_symlinks = 0;
 my $check_directory = 0;
+my $stragegy = $ST_COMPARE;
 my $needhelp;
 GetOptions(
     'h|help' => \$needhelp,
     'l|follow-symlinks' => \$follow_symlinks,
     'd|directory' => \$check_directory,
     'v|verbose' => \$verbose,
+    'compare' => sub { $stragegy = $ST_COMPARE },
+    'hash' => sub { $stragegy = $ST_HASH },
 ) or usage;
 usage if $needhelp;
 set_verbose $verbose;
@@ -53,14 +75,19 @@ my @dirs = @ARGV ? @ARGV : (".");
 verbose '@dirs = ' . uneval(\@dirs);
 
 
-find({
-    wanted => sub {
-        return if !$check_directory && -d $_;
-        verbose "processing $_...";
-    },
-    follow => $follow_symlinks,
-    no_chdir => 1,
-}, @dirs);
+if ($stragegy == $ST_COMPARE) {
+    unless (@ARGV == 2) {
+        say STDERR "specify two directories.";
+        usage;
+    }
+    compare_two_directories(@ARGV, $check_directory, $follow_symlinks);
+}
+elsif ($stragegy == $ST_HASH) {
+    die "not implemented.";    # TODO
+}
+else {
+    die "must not reach here!\n";
+}
 
 
 __END__
