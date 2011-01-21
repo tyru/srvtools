@@ -39,7 +39,7 @@ sub compare_two_directories {
     my ($dir1, $dir2, $follow_symlinks) = @_;
     find({
         wanted => sub {
-            return if -d $_;
+            return unless -f $_;
             verbose "processing $_...";
         },
         follow => $follow_symlinks,
