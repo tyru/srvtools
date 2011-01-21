@@ -14,6 +14,7 @@ Readonly::Scalar my $ST_HASH    => 1;
 
 
 sub usage () {
+    print STDERR "\n\n";
     pod2usage(-verbose => 1);
 }
 
