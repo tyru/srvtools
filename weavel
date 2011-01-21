@@ -11,10 +11,12 @@ sub usage () {
 
 
 my $follow_symlinks = 0;
+my $check_directory = 0;
 my $needhelp;
 GetOptions(
     'h|help' => \$needhelp,
     'l|follow-symlinks' => \$follow_symlinks,
+    'd|directory' => \$check_directory,
 ) or usage;
 usage if $needhelp;
 
@@ -30,6 +32,7 @@ my @dirs = @ARGV ? @ARGV : (".");
 
 find({
     wanted => sub {
+        return if !$check_directory && -d $_;
         warn "hi: $_";
     },
     follow => $follow_symlinks,
