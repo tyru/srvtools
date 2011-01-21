@@ -68,6 +68,10 @@ if ($stragegy == $ST_COMPARE) {
         say STDERR "specify two directories.";
         usage;
     }
+    unless (-d $ARGV[0] && -d $ARGV[1]) {
+        say STDERR "specify two directories.";
+        usage;
+    }
     compare_two_directories(@ARGV, $follow_symlinks);
 }
 elsif ($stragegy == $ST_HASH) {
