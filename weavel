@@ -2,6 +2,7 @@
 use common::sense;
 use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 use Pod::Usage;
+use File::Find;
 
 
 sub usage () {
@@ -9,13 +10,31 @@ sub usage () {
 }
 
 
+my $follow_symlinks = 0;
 my $needhelp;
 GetOptions(
     'h|help' => \$needhelp,
+    'l|follow-symlinks' => \$follow_symlinks,
 ) or usage;
 usage if $needhelp;
 
 
+my @dirs = @ARGV ? @ARGV : (".");
+@dirs = grep {
+    -d || do {
+        print STDERR "$_: $!\n";
+        0;
+    };
+} @dirs;
+
+
+find({
+    wanted => sub {
+        warn "hi: $_";
+    },
+    follow => $follow_symlinks,
+    no_chdir => 1,
+}, @dirs);
 
 
 __END__
