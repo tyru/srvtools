@@ -63,16 +63,6 @@ usage if $needhelp;
 set_verbose $verbose;
 
 
-my @dirs = @ARGV ? @ARGV : (".");
-@dirs = grep {
-    -d || do {
-        print STDERR "$_: $!\n";
-        0;
-    };
-} @dirs;
-verbose '@dirs = ' . uneval(\@dirs);
-
-
 if ($stragegy == $ST_COMPARE) {
     unless (@ARGV == 2) {
         say STDERR "specify two directories.";
