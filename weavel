@@ -5,6 +5,9 @@ use Pod::Usage;
 use File::Find;
 use Data::Dumper;
 use Readonly;
+use File::Spec::Functions qw(catdir splitdir canonpath);
+use File::Basename qw(basename);
+use IO::File;
 
 
 
@@ -36,12 +39,67 @@ sub uneval {
     }
 }
 
+sub same_path {
+    my ($path1, $path2) = @_;
+    return $path1 eq $path2
+        && canonpath($path1) eq canonpath($path2);
+}
+
+sub same_inode {
+    my ($file1, $file2) = @_;
+    return (stat $file1)[1] == (stat $file2)[1];
+}
+
+sub same_data {
+    my ($file1, $file2) = @_;
+
+    my $FH1 = IO::File->new($file1) or die "$file1: $!";
+    my $FH2 = IO::File->new($file2) or die "$file2: $!";
+    Readonly::Scalar my $LEN => 1024;
+    my ($buf1, $buf2);
+
+    while (1) {
+        my $c1 = sysread $FH1, $buf1, $LEN;
+        my $c2 = sysread $FH2, $buf2, $LEN;
+        return 0 if $c1 != $c2;     # different length.
+        return 1 if $c1 == 0;       # EOF
+        return 0 if $buf1 ne $buf2; # different data.
+    }
+    die "never reach here.";
+}
+
+# why isn't this in List::MoreUtils ?
+# (and drop_while(), take(), take_while(), and so on)
+sub drop {
+    my ($n, @l) = @_;
+    # assert $n > 0;
+    return @l[$n..$#l];
+}
+
 sub compare_two_directories {
     my ($dir1, $dir2, $follow_symlinks) = @_;
+    my $path_num = splitdir $dir1;
     find({
         wanted => sub {
             return unless -f $_;
             verbose "processing $_...";
+
+            my $common = catdir drop $path_num, splitdir $File::Find::dir;
+            my $base = basename $_;
+            my $file1 = catdir $dir1, $common, $base;
+            my $file2 = catdir $dir2, $common, $base;
+            verbose "comparing '$file1' and '$file2'...";
+
+            if (-f $file2
+                && !same_path($file1, $file2)
+                && !same_inode($file1, $file2)
+                && same_data($file1, $file2))
+            {
+                verbose "same files and have different inodes: $file1, $file2";
+                unlink $file2;
+                link $file1 => $file2;
+            }
+
         },
         follow => $follow_symlinks,
         no_chdir => 1,
