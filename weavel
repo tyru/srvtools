@@ -8,6 +8,8 @@ use Readonly;
 use File::Spec::Functions qw(catdir splitdir canonpath);
 use File::Basename qw(basename);
 use IO::File;
+use Digest::MD5 qw(md5);
+use Perl6::Slurp;
 
 
 
@@ -77,6 +79,19 @@ sub drop {
     return @l[$n..$#l];
 }
 
+sub weave_link {
+    my ($file1, $file2) = @_;
+
+    if (!same_path($file1, $file2)
+        && !same_inode($file1, $file2)
+        && same_data($file1, $file2))
+    {
+        verbose "same files and have different inodes: $file1, $file2";
+        unlink $file2;
+        link $file1 => $file2;
+    }
+}
+
 sub compare_two_directories {
     my ($dir1, $dir2, $follow_symlinks) = @_;
     my $path_num = splitdir $dir1;
@@ -91,20 +106,38 @@ sub compare_two_directories {
             my $file2 = catdir $dir2, $common, $base;
             verbose "comparing '$file1' and '$file2'...";
 
-            if (-f $file2
-                && !same_path($file1, $file2)
-                && !same_inode($file1, $file2)
-                && same_data($file1, $file2))
-            {
-                verbose "same files and have different inodes: $file1, $file2";
-                unlink $file2;
-                link $file1 => $file2;
+            if (-f $file2) {
+                weave_link($file1, $file2);
             }
 
         },
         follow => $follow_symlinks,
         no_chdir => 1,
     }, $dir1);
+}
+
+sub compare_by_hash {
+    my ($dirs, $follow_symlinks) = @_;
+    my %hash;
+
+    find({
+        wanted => sub {
+            return unless -f $_;
+            verbose "processing $_...";
+
+            my $md5 = md5 scalar slurp $_;
+            if (exists $hash{$md5}) {
+                my $file1 = $hash{$md5};
+                my $file2 = $_;
+                weave_link($file1, $file2);
+            }
+            else {
+                $hash{$md5} = $_;
+            }
+        },
+        follow => $follow_symlinks,
+        no_chdir => 1,
+    }, @$dirs);
 }
 
 
@@ -135,7 +168,13 @@ if ($stragegy == $ST_COMPARE) {
     compare_two_directories(@ARGV, $follow_symlinks);
 }
 elsif ($stragegy == $ST_HASH) {
-    die "not implemented.";    # TODO
+    my @dirs = grep {
+        -d || do {
+            say STDERR "warning: $_ is not a directory.";
+            0;
+        }
+    } @ARGV;
+    compare_by_hash(\@dirs, $follow_symlinks);
 }
 else {
     die "must not reach here!\n";
