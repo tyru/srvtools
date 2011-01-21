@@ -11,6 +11,7 @@ use IO::File;
 
 
 
+# How does weavel find the duplicated files?
 Readonly::Scalar my $ST_COMPARE => 0;
 Readonly::Scalar my $ST_HASH    => 1;
 
