@@ -101,9 +101,9 @@ sub compare_two_directories {
             verbose "processing $_...";
 
             my $common = catdir drop $path_num, splitdir $File::Find::dir;
-            my $base = basename $_;
-            my $file1 = catdir $dir1, $common, $base;
-            my $file2 = catdir $dir2, $common, $base;
+            my $f = basename $_;
+            my $file1 = catdir $dir1, $common, $f;
+            my $file2 = catdir $dir2, $common, $f;
             verbose "comparing '$file1' and '$file2'...";
 
             if (-f $file2) {
