@@ -14,7 +14,7 @@ use Perl6::Slurp;
 
 
 # How does weavel find the duplicated files?
-Readonly::Scalar my $ST_COMPARE => 0;
+Readonly::Scalar my $ST_PATH => 0;
 Readonly::Scalar my $ST_HASH    => 1;
 
 
@@ -92,7 +92,7 @@ sub weave_link {
     }
 }
 
-sub compare_two_directories {
+sub compare_by_path {
     my ($dir1, $dir2, $follow_symlinks) = @_;
     my $path_num = splitdir $dir1;
     find({
@@ -143,20 +143,20 @@ sub compare_by_hash {
 
 my $verbose = 0;
 my $follow_symlinks = 0;
-my $stragegy = $ST_COMPARE;
+my $stragegy = $ST_PATH;
 my $needhelp;
 GetOptions(
     'h|help' => \$needhelp,
     'l|follow-symlinks' => \$follow_symlinks,
     'v|verbose' => \$verbose,
-    'compare' => sub { $stragegy = $ST_COMPARE },
+    'path' => sub { $stragegy = $ST_PATH },
     'hash' => sub { $stragegy = $ST_HASH },
 ) or usage;
 usage if $needhelp;
 set_verbose $verbose;
 
 
-if ($stragegy == $ST_COMPARE) {
+if ($stragegy == $ST_PATH) {
     unless (@ARGV == 2) {
         say STDERR "error: specify two directories.";
         usage;
@@ -165,7 +165,7 @@ if ($stragegy == $ST_COMPARE) {
         say STDERR "error: specify two directories.";
         usage;
     }
-    compare_two_directories(@ARGV, $follow_symlinks);
+    compare_by_path(@ARGV, $follow_symlinks);
 }
 elsif ($stragegy == $ST_HASH) {
     my @dirs = grep {
