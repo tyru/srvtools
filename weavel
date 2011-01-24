@@ -92,7 +92,7 @@ sub weave_link {
     }
 }
 
-sub compare_by_path {
+sub find_by_path {
     my ($dir1, $dir2, $follow_symlinks) = @_;
     my $path_num = splitdir $dir1;
     find({
@@ -116,7 +116,7 @@ sub compare_by_path {
     }, $dir1);
 }
 
-sub compare_by_hash {
+sub find_by_hash {
     my ($dirs, $follow_symlinks) = @_;
     my %hash;
 
@@ -165,7 +165,7 @@ if ($stragegy == $ST_PATH) {
         say STDERR "error: specify two directories.";
         usage;
     }
-    compare_by_path(@ARGV, $follow_symlinks);
+    find_by_path(@ARGV, $follow_symlinks);
 }
 elsif ($stragegy == $ST_HASH) {
     my @dirs = grep {
@@ -174,7 +174,7 @@ elsif ($stragegy == $ST_HASH) {
             0;
         }
     } @ARGV;
-    compare_by_hash(\@dirs, $follow_symlinks);
+    find_by_hash(\@dirs, $follow_symlinks);
 }
 else {
     die "must not reach here!\n";
