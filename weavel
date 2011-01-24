@@ -199,6 +199,24 @@ __END__
 
 Show this help.
 
+=item -l, --follow-symlinks
+
+Follow symbolic links.
+
+=item -v, --verbose
+
+Show verbose output.
+
+=item --path
+
+Find two same files by two directories' paths.
+This is default.
+See --hash for another strategy to find same files.
+
+=item --hash
+
+Find two or more same files by file data with MD5.
+
 =back
 
 
