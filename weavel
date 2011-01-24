@@ -190,6 +190,11 @@ __END__
 
 =head1 SYNOPSIS
 
+    # Let duplicated files (in same head path) have same inodes.
+    $ weavel --path dir1/ dir2/
+    # Let duplicated files (in same file data) have same inodes.
+    $ weavel --hash dir1/ dir2/ dir3/
+
 
 =head1 OPTIONS
 
