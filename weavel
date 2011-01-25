@@ -15,7 +15,7 @@ use Perl6::Slurp;
 
 # How does weavel find the duplicated files?
 Readonly::Scalar my $ST_PATH => 0;
-Readonly::Scalar my $ST_HASH    => 1;
+Readonly::Scalar my $ST_HASH => 1;
 
 
 
