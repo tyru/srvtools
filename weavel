@@ -169,11 +169,13 @@ if (@dirs < 2) {
 if ($stragegy == $ST_PATH) {
     while (@dirs) {
         my ($dir1, $dir2) = @dirs;
+        verbose "find same files by path: $dir1, $dir2";
         find_by_path($dir1, $dir2, $follow_symlinks);
         shift @dirs;
     }
 }
 elsif ($stragegy == $ST_HASH) {
+    verbose "find same files by path: ".join(", ", @dirs);
     find_by_hash(\@dirs, $follow_symlinks);
 }
 else {
