@@ -156,24 +156,24 @@ usage if $needhelp;
 set_verbose $verbose;
 
 
+my @dirs = grep {
+    -d || do {
+        say STDERR "warning: $_ is not a directory.";
+        0;
+    }
+} @ARGV;
+if (@dirs < 2) {
+    die "specify two directories at least.\n";
+}
+
 if ($stragegy == $ST_PATH) {
-    unless (@ARGV == 2) {
-        say STDERR "error: specify two directories.";
-        usage;
+    while (@dirs) {
+        my ($dir1, $dir2) = @dirs;
+        find_by_path($dir1, $dir2, $follow_symlinks);
+        shift @dirs;
     }
-    unless (-d $ARGV[0] && -d $ARGV[1]) {
-        say STDERR "error: specify two directories.";
-        usage;
-    }
-    find_by_path(@ARGV, $follow_symlinks);
 }
 elsif ($stragegy == $ST_HASH) {
-    my @dirs = grep {
-        -d || do {
-            say STDERR "warning: $_ is not a directory.";
-            0;
-        }
-    } @ARGV;
     find_by_hash(\@dirs, $follow_symlinks);
 }
 else {
