@@ -38,7 +38,7 @@ sub uneval {
     }
 
     sub verbose {
-        $verbose and say STDERR "[verbose] ", @_;
+        $verbose and say "[verbose] ", @_;
     }
 }
 
