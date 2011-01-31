@@ -179,7 +179,7 @@ elsif ($strategy == $ST_HASH) {
     find_by_hash(\@dirs, $follow_symlinks);
 }
 else {
-    die "must not reach here!\n";
+    die "must not reach here!";
 }
 
 
