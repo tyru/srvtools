@@ -59,11 +59,11 @@ sub same_data {
     my $FH1 = IO::File->new($file1) or die "$file1: $!";
     my $FH2 = IO::File->new($file2) or die "$file2: $!";
     Readonly::Scalar my $LEN => 1024;
-    my ($buf1, $buf2);
+    my ($buf1, $buf2, $c1, $c2);
 
     while (1) {
-        my $c1 = sysread $FH1, $buf1, $LEN;
-        my $c2 = sysread $FH2, $buf2, $LEN;
+        $c1 = sysread $FH1, $buf1, $LEN;
+        $c2 = sysread $FH2, $buf2, $LEN;
         return 0 if $c1 != $c2;     # different length.
         return 1 if $c1 == 0;       # EOF
         return 0 if $buf1 ne $buf2; # different data.
