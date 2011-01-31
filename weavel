@@ -143,14 +143,14 @@ sub find_by_hash {
 
 my $verbose = 0;
 my $follow_symlinks = 0;
-my $stragegy = $ST_PATH;
+my $strategy = $ST_PATH;
 my $needhelp;
 GetOptions(
     'h|help' => \$needhelp,
     'l|follow-symlinks' => \$follow_symlinks,
     'v|verbose' => \$verbose,
-    'path' => sub { $stragegy = $ST_PATH },
-    'hash' => sub { $stragegy = $ST_HASH },
+    'path' => sub { $strategy = $ST_PATH },
+    'hash' => sub { $strategy = $ST_HASH },
 ) or usage;
 usage if $needhelp;
 set_verbose $verbose;
@@ -166,7 +166,7 @@ if (@dirs < 2) {
     die "specify two directories at least.\n";
 }
 
-if ($stragegy == $ST_PATH) {
+if ($strategy == $ST_PATH) {
     while (@dirs) {
         my ($dir1, $dir2) = @dirs;
         verbose "find same files by path: $dir1, $dir2";
@@ -174,8 +174,8 @@ if ($stragegy == $ST_PATH) {
         shift @dirs;
     }
 }
-elsif ($stragegy == $ST_HASH) {
-    verbose "find same files by path: ".join(", ", @dirs);
+elsif ($strategy == $ST_HASH) {
+    verbose "find same files by hash: ".join(", ", @dirs);
     find_by_hash(\@dirs, $follow_symlinks);
 }
 else {
