@@ -5,7 +5,8 @@ use Pod::Usage;
 use File::Find;
 use Data::Dumper;
 use Readonly;
-use File::Spec::Functions qw(catdir splitdir canonpath);
+use File::Spec::Functions qw(catdir splitdir);
+use Cwd qw(realpath);
 use File::Basename qw(basename);
 use IO::File;
 use Digest::MD5 qw(md5);
@@ -42,10 +43,10 @@ sub uneval {
     }
 }
 
-sub same_path {
+sub same_file {
     my ($path1, $path2) = @_;
     return $path1 eq $path2
-        && canonpath($path1) eq canonpath($path2);
+        && realpath($path1) eq realpath($path2);
 }
 
 sub same_inode {
@@ -82,7 +83,7 @@ sub drop {
 sub weave_link {
     my ($file1, $file2) = @_;
 
-    if (!same_path($file1, $file2)
+    if (!same_file($file1, $file2)
         && !same_inode($file1, $file2)
         && same_data($file1, $file2))
     {
