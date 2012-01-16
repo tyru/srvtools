@@ -4,7 +4,6 @@ use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 use Pod::Usage;
 use File::Find;
 use Data::Dumper;
-use Readonly;
 use File::Spec::Functions qw(catdir splitdir);
 use Cwd qw(realpath);
 use File::Basename qw(basename);
@@ -14,8 +13,8 @@ use Digest::MD5 qw(md5);
 
 
 # How does weavel find the duplicated files?
-Readonly::Scalar my $ST_PATH => 0;
-Readonly::Scalar my $ST_HASH => 1;
+my $ST_PATH = 0;
+my $ST_HASH = 1;
 
 
 
@@ -58,7 +57,7 @@ sub same_data {
 
     my $FH1 = IO::File->new($file1) or die "$file1: $!";
     my $FH2 = IO::File->new($file2) or die "$file2: $!";
-    Readonly::Scalar my $LEN => 1024;
+    my $LEN = 1024;
     my ($buf1, $buf2, $c1, $c2);
 
     while (1) {
