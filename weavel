@@ -68,7 +68,7 @@ sub same_data {
         return 1 if $c1 == 0;       # EOF
         return 0 if $buf1 ne $buf2; # different data.
     }
-    die "never reach here.";
+    die "error: never reach here.";
 }
 
 # why isn't this in List::MoreUtils ?
@@ -168,7 +168,7 @@ my @dirs = grep {
     }
 } @ARGV;
 if (@dirs < 2) {
-    die "specify two directories at least.\n";
+    die "error: specify two directories at least.\n";
 }
 
 if ($strategy == $ST_PATH) {
@@ -184,7 +184,7 @@ elsif ($strategy == $ST_HASH) {
     find_by_hash(\@dirs, $follow_symlinks);
 }
 else {
-    die "must not reach here!";
+    die "error: must not reach here!";
 }
 
 
