@@ -10,7 +10,6 @@ use Cwd qw(realpath);
 use File::Basename qw(basename);
 use IO::File;
 use Digest::MD5 qw(md5);
-use Perl6::Slurp;
 
 
 
@@ -126,7 +125,12 @@ sub find_by_hash {
             return unless -f $_;
             verbose "processing $_...";
 
-            my $md5 = md5 scalar slurp $_;
+            my $md5 = do {
+                my $FH = IO::File->new($_) or die "$_: $!";
+                my $content = do { local $/; <$FH> };
+                $FH->close;
+                md5 $content;
+            };
             if (exists $hash{$md5}) {
                 my $file1 = $hash{$md5};
                 my $file2 = $_;
