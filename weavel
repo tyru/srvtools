@@ -13,7 +13,7 @@ use Digest::MD5 qw(md5);
 
 
 
-# How does weavel find the duplicated files?
+# The ways to find the duplicated files.
 my $ST_PATH = 0;
 my $ST_HASH = 1;
 
