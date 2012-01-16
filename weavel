@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-use common::sense;
+use strict;
+use warnings;
 use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 use Pod::Usage;
 use File::Find;
@@ -37,7 +38,7 @@ sub uneval {
     }
 
     sub verbose {
-        $verbose and say "[verbose] ", @_;
+        $verbose and print "[verbose] ", @_, "\n";
     }
 }
 
@@ -162,7 +163,7 @@ set_verbose $verbose;
 
 my @dirs = grep {
     -d || do {
-        say STDERR "warning: $_ is not a directory.";
+        print STDERR "warning: $_ is not a directory.\n";
         0;
     }
 } @ARGV;
