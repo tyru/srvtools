@@ -172,7 +172,7 @@ if (@dirs < 2) {
 }
 
 if ($strategy == $ST_PATH) {
-    while (@dirs) {
+    while (@dirs >= 2) {
         my ($dir1, $dir2) = @dirs;
         verbose "find same files by path: $dir1, $dir2";
         find_by_path($dir1, $dir2, $follow_symlinks);
