@@ -5,6 +5,7 @@
 set -e
 
 usage() {
+    basename=`basename $0`
     echo "Usage: $basename [options] <hostname>:<port>"
     exit 1
 }
