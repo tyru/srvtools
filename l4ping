@@ -1,0 +1,104 @@
+#!/bin/sh
+#
+# inspired by http://wiki.itadmins.net/doku.php?id=network:tcp_udp_ping
+
+set -e
+
+usage() {
+    echo "Usage: $basename [options] <hostname>:<port>"
+    exit 1
+}
+
+
+# Parse arguments.
+[ $# -eq 0 ] && usage
+interval=1
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -i)
+            shift
+            if ! echo "$1" | egrep '^([1-9][0-9]*|[0-9])$' >/dev/null; then
+                echo "error: $1: invalid -i option value" >&2
+                usage
+            fi
+            interval="$1"
+        ;;
+        -T)
+            proto=T
+            type=tcp
+        ;;
+        -U)
+            proto=U
+            type=udp
+        ;;
+        -h|--help)
+            usage
+        ;;
+        -*)
+            echo "error: $1: unknown option" >&2
+            usage
+        ;;
+        *)
+            break
+        ;;
+    esac
+    shift
+done
+
+# See basename.
+basename=`basename $0`
+case "$basename" in
+    tcping)
+        if [ "$proto" = 'U' ]; then
+            echo "error: -$proto option was specified but called from $basename?" >&2
+            exit 1
+        fi
+        proto=T
+        type=tcp
+    ;;
+    udping)
+        if [ "$proto" = 'T' ]; then
+            echo "error: -$proto option was specified but called from $basename?" >&2
+            exit 1
+        fi
+        proto=U
+        type=udp
+    ;;
+esac
+
+# Check root privileges for UDP ping.
+if [ $type = 'udp' -a "`id -u`" -ne 0 ]; then
+    echo 'error: you need root privileges for UDP ping.' >&2
+    exit 1
+fi
+
+# Register a clean up handler.
+cleanup() {
+    [ "$pid" ] && kill "$pid" 2>/dev/null | true
+}
+trap 'cleanup' INT TERM EXIT
+
+# Do UDP/TCP ping.
+get_host() {
+    echo "$1" | sed -re 's/:.*//'
+}
+get_port() {
+    echo "$1" | sed -re 's/.*://'
+}
+
+arg="$1"
+if ! (echo "$arg" | egrep '^[^:]+:[0-9]+$' >/dev/null); then
+    echo "error: $arg: invalid argument" >&2
+    usage
+fi
+host=`get_host "$arg"`
+port=`get_port "$arg"`
+type_toupper=`echo "$type" | tr '[a-z]' '[A-Z]'`
+while :; do
+    orgsecond=`date +%S`
+    echo -n "${type_toupper}ING $host ... "
+    nmap -P0 -s $proto -p $port $host | egrep "^$port/$type"'\s+(open|closed)'
+    newsecond=`date +%S`
+    # TODO: sleep *actual* interval in this loop!
+    sleep $interval
+done
