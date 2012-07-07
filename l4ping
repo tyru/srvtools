@@ -80,6 +80,11 @@ get_host() {
 get_port() {
     echo "$1" | sed -re 's/.*://'
 }
+do_expr() {
+    # Ignore 'expr' command exit status
+    # to avoid unexpected exit due to 'set -e'.
+    expr "$@" || true
+}
 
 arg="$1"
 if ! (echo "$arg" | egrep '^[^:]+:[0-9]+$' >/dev/null); then
@@ -90,10 +95,13 @@ host=`get_host "$arg"`
 port=`get_port "$arg"`
 type_toupper=`echo "$type" | tr '[a-z]' '[A-Z]'`
 while :; do
-    orgsecond=`date +%S`
+    before=`date +%S`
     echo -n "${type_toupper}ING $host ... "
     nmap -P0 -s $proto -p $port $host | egrep "^$port/$type"'\s+(open|closed)'
-    newsecond=`date +%S`
-    # TODO: sleep *actual* interval in this loop!
-    sleep $interval
+    after=`date +%S`
+    [ $before -gt $after ] && after=`do_expr $after + 60`    # wrap around
+    diff=`do_expr $after - $before`
+    if [ $diff -lt $interval ]; then
+        sleep `do_expr $interval - $diff`
+    fi
 done
