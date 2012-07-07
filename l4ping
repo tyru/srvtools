@@ -73,12 +73,6 @@ if [ $type = 'udp' -a "`id -u`" -ne 0 ]; then
     exit 1
 fi
 
-# Register a clean up handler.
-cleanup() {
-    [ "$pid" ] && kill "$pid" 2>/dev/null | true
-}
-trap 'cleanup' INT TERM EXIT
-
 # Do UDP/TCP ping.
 get_host() {
     echo "$1" | sed -re 's/:.*//'
