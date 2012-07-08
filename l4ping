@@ -12,13 +12,20 @@ usage() {
 
 
 # Parse arguments.
+is_int() {
+    [ $# -eq 0 ] && return 1
+    echo "$1" | egrep '^([1-9][0-9]*|[0-9])$' >/dev/null
+}
 [ $# -eq 0 ] && usage
 interval=1
+proto=
+type=
+count=
 while [ $# -ne 0 ]; do
     case "$1" in
         -i)
             shift
-            if ! echo "$1" | egrep '^([1-9][0-9]*|[0-9])$' >/dev/null; then
+            if ! is_int "$1"; then
                 echo "error: $1: invalid -i option value" >&2
                 usage
             fi
@@ -31,6 +38,14 @@ while [ $# -ne 0 ]; do
         -U)
             proto=U
             type=udp
+        ;;
+        -c)
+            shift
+            if ! is_int "$1"; then
+                echo "error: $1: invalid -i option value" >&2
+                usage
+            fi
+            count="$1"
         ;;
         -h|--help)
             usage
@@ -94,10 +109,21 @@ fi
 host=`get_host "$arg"`
 port=`get_port "$arg"`
 type_toupper=`echo "$type" | tr '[a-z]' '[A-Z]'`
+i=0
 while :; do
+    # Save $before second(s) for $interval.
     before=`date +%S`
+
+    # Do TCP/UDP ping.
     echo -n "${type_toupper}ING $host ... "
     nmap -P0 -s $proto -p $port $host | egrep "^$port/$type"'\s+(open|closed)'
+
+    # Break a loop if $i >= $count.
+    i=`expr $i + 1`
+    [ "$count" -a "$i" -ge "$count" ] && break
+
+    # Sleep for a next ping as needed.
+    # TODO: Support millisecond?
     after=`date +%S`
     [ $before -gt $after ] && after=`do_expr $after + 60`    # wrap around
     diff=`do_expr $after - $before`
