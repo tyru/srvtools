@@ -124,7 +124,7 @@ while :; do
 
     # Break a loop if $i >= $count.
     i=`expr $i + 1`
-    [ "$count" -a "$i" -ge "$count" ] && break
+    [ "$count" ] && [ "$i" -ge "$count" ] && break
 
     # Sleep for a next ping as needed.
     # TODO: Support millisecond?
