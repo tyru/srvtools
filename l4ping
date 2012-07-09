@@ -86,7 +86,7 @@ case "$basename" in
 esac
 
 # Check root privileges for UDP ping.
-if [ $type = 'udp' -a "`id -u`" -ne 0 ]; then
+if [ "$type" = 'udp' -a "`id -u`" -ne 0 ]; then
     echo 'error: you need root privileges for UDP ping.' >&2
     exit 1
 fi
@@ -129,9 +129,9 @@ while :; do
     # Sleep for a next ping as needed.
     # TODO: Support millisecond?
     after=`date +%S`
-    [ $before -gt $after ] && after=`do_expr $after + 60`    # wrap around
-    diff=`do_expr $after - $before`
-    if [ $diff -lt $interval ]; then
-        sleep `do_expr $interval - $diff`
+    [ "$before" -gt "$after" ] && after=`do_expr "$after" + 60`    # wrap around
+    diff=`do_expr "$after" - "$before"`
+    if [ "$diff" -lt "$interval" ]; then
+        sleep `do_expr "$interval" - "$diff"`
     fi
 done
