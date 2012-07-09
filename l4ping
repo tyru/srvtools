@@ -50,6 +50,10 @@ while [ $# -ne 0 ]; do
         -h|--help)
             usage
         ;;
+        --)
+            shift
+            break
+        ;;
         -*)
             echo "error: $1: unknown option" >&2
             usage
