@@ -2,6 +2,9 @@
 
 MINICPAN=/usr/local/bin/minicpan
 URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
+RETRY_COUNT=3
+SLEEP_SECONDS=10
+
 # Kanto
 # URL='ftp://ftp.kddilabs.jp/CPAN/'
 # URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
@@ -13,4 +16,12 @@ URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
 # URL='http://ftp.riken.jp/lang/CPAN/'
 DIR='/var/cron-scripts/minicpan'
 
-$MINICPAN -r $URL -l $DIR
+count=0
+while [ $count -lt $RETRY_COUNT ]; do
+	$MINICPAN -r "$URL" -l "$DIR" && exit 0
+	count=`expr $count + 1`
+	sleep $SLEEP_SECONDS
+end
+
+echo "retried $RETRY_COUNT times but unable to contact remote mirror..." >&2
+exit 1
