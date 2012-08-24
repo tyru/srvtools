@@ -1,0 +1,16 @@
+#!/bin/sh
+
+MINICPAN=/usr/local/bin/minicpan
+URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
+# Kanto
+# URL='ftp://ftp.kddilabs.jp/CPAN/'
+# URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
+# N/A
+# URL='ftp://ftp.nara.wide.ad.jp/pub/CPAN/'
+# URL='http://ftp.nara.wide.ad.jp/pub/CPAN/'
+# Saitama-Ken
+# URL='ftp://ftp.riken.jp/lang/CPAN/'
+# URL='http://ftp.riken.jp/lang/CPAN/'
+DIR='/var/cron-scripts/minicpan'
+
+$MINICPAN -r $URL -l $DIR
