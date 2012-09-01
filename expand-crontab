@@ -46,6 +46,9 @@ my $span = DateTime::Span->from_datetimes(
 # List of DateTime::Set objects from crontab file
 while (defined(my $line = <>)) {
     chomp $line;
+    next if $line =~ /^\s*#/;
+    next if $line =~ /^\s*$/;
+
     my %param = (cron => $line);
        $param{user_mode} = $opt_user_mode if defined $opt_user_mode;
     my $dtc = DateTime::Event::Cron->new_from_cron(%param);
