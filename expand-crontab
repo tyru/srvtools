@@ -46,7 +46,7 @@ while (defined(my $line = <>)) {
     my $dtc = DateTime::Event::Cron->new_from_cron($line);
     my $set = $dtc->as_set(span => $span);
     my $dt = $begin_of_today;
-    while ($dt = $set->next($dt)) {
+    while ($dt = $set->next($dt) and DateTime->compare($dt, $end_of_today) != 0) {
         my ($m, $h, $dom, $mon, $dow) = ($dt->minute, $dt->hour, $dt->day, $dt->month, $dt->day_of_week);
         my $user_command = (defined($dtc->user) ? $dtc->user . ' ' : '') . $dtc->command;
         print "$m $h $dom $mon $dow $user_command\n";
