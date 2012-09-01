@@ -18,8 +18,11 @@ sub usage () {
 }
 
 
+my $opt_user_mode;
 GetOptions(
     'h|help' => \&usage,
+    'user' => \$opt_user_mode,
+    'no-user' => \$opt_user_mode,
 ) or usage;
 
 
@@ -43,7 +46,9 @@ my $span = DateTime::Span->from_datetimes(
 # List of DateTime::Set objects from crontab file
 while (defined(my $line = <>)) {
     chomp $line;
-    my $dtc = DateTime::Event::Cron->new_from_cron($line);
+    my %param = (cron => $line);
+       $param{user_mode} = $opt_user_mode if defined $opt_user_mode;
+    my $dtc = DateTime::Event::Cron->new_from_cron(%param);
     my $set = $dtc->as_set(span => $span);
     my $dt = $begin_of_today;
     while ($dt = $set->next($dt) and DateTime->compare($dt, $end_of_today) != 0) {
