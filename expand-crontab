@@ -64,6 +64,12 @@ __END__
 
 =head1 SYNOPSIS
 
+    $ echo '0 */4 * * * /path/to/command' | expand-crontab
+    0 4 1 9 6 /path/to/command
+    0 8 1 9 6 /path/to/command
+    0 12 1 9 6 /path/to/command
+    0 16 1 9 6 /path/to/command
+    0 20 1 9 6 /path/to/command
 
 =head1 OPTIONS
 
