@@ -1,0 +1,27 @@
+#!/bin/sh
+
+MINICPAN=/usr/local/bin/minicpan
+URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
+RETRY_COUNT=3
+SLEEP_SECONDS=10
+
+# Kanto
+# URL='ftp://ftp.kddilabs.jp/CPAN/'
+# URL='ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/'
+# N/A
+# URL='ftp://ftp.nara.wide.ad.jp/pub/CPAN/'
+# URL='http://ftp.nara.wide.ad.jp/pub/CPAN/'
+# Saitama-Ken
+# URL='ftp://ftp.riken.jp/lang/CPAN/'
+# URL='http://ftp.riken.jp/lang/CPAN/'
+DIR='/var/cron-scripts/minicpan'
+
+count=0
+while [ $count -lt $RETRY_COUNT ]; do
+	$MINICPAN -r "$URL" -l "$DIR" && exit 0
+	count=`expr $count + 1`
+	sleep $SLEEP_SECONDS
+done
+
+echo "retried $RETRY_COUNT times but unable to contact remote mirror..." >&2
+exit 1
