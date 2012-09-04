@@ -1,4 +1,8 @@
 #!/usr/bin/env perl
+# vim:ai ts=4 sts=4 sw=4 et:
+
+use lib 'extlib/lib/perl5';
+
 use strict;
 use warnings;
 
@@ -19,10 +23,11 @@ sub usage () {
 
 
 my $opt_user_mode;
+my $opt_sort = 1;
 GetOptions(
     'h|help' => \&usage,
-    'user' => \$opt_user_mode,
-    'no-user' => \$opt_user_mode,
+    'user!' => \$opt_user_mode,
+    'sort!' => \$opt_sort,
 ) or usage;
 
 
@@ -44,23 +49,39 @@ my $span = DateTime::Span->from_datetimes(
 );
 
 # List of DateTime::Set objects from crontab file
+my @entries;
 while (defined(my $line = <>)) {
     chomp $line;
-    next if $line =~ /^\s*#/;
-    next if $line =~ /^\s*$/;
+    next if $line =~ /^\s*#/; # comment
+    next if $line =~ /^\s*$/; # blank line
+    next if $line =~ /^\s*\w+=/; # environment variable
 
     my %param = (cron => $line);
        $param{user_mode} = $opt_user_mode if defined $opt_user_mode;
-    my $dtc = DateTime::Event::Cron->new_from_cron(%param);
+    my $dtc = eval { DateTime::Event::Cron->new_from_cron(%param) };
+    if ($@) {
+        chomp(my $err = $@);
+        my $lnum = ARGV->input_line_number();
+        warn "failed to parse crontab line: $err\n" . "$ARGV: line $lnum: $line\n";
+        next;
+    };
     my $set = $dtc->as_set(span => $span);
     my $dt = $begin_of_today;
     while ($dt = $set->next($dt) and DateTime->compare($dt, $end_of_today) != 0) {
-        my ($m, $h, $dom, $mon, $dow) = ($dt->minute, $dt->hour, $dt->day, $dt->month, $dt->day_of_week);
-        my $user_command = (defined($dtc->user) ? $dtc->user . ' ' : '') . $dtc->command;
-        print "$m $h $dom $mon $dow $user_command\n";
+        push @entries, {datetime => $dt, user => $dtc->user, command => $dtc->command};
     }
 }
 
+if ($opt_sort) {
+    @entries = sort { $a->{datetime} <=> $b->{datetime} } @entries;
+}
+
+for my $entry (@entries) {
+    my $dt = $entry->{datetime};
+    my ($m, $h, $dom, $mon, $dow) = ($dt->minute, $dt->hour, $dt->day, $dt->month, $dt->day_of_week);
+    my $user_command = (defined($entry->{user}) ? $entry->{user} . ' ' : '') . $entry->{command};
+    print "$m $h $dom $mon $dow $user_command\n";
+}
 
 
 __END__
