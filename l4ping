@@ -1,0 +1,137 @@
+#!/bin/sh
+#
+# inspired by http://wiki.itadmins.net/doku.php?id=network:tcp_udp_ping
+
+set -e
+
+usage() {
+    basename=`basename $0`
+    echo "Usage: $basename [options] <hostname>:<port>"
+    exit 1
+}
+
+
+# Parse arguments.
+is_int() {
+    [ $# -eq 0 ] && return 1
+    echo "$1" | egrep '^([1-9][0-9]*|[0-9])$' >/dev/null
+}
+interval=1
+proto=T
+type=tcp
+count=
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -i)
+            shift
+            if ! is_int "$1"; then
+                echo "error: $1: invalid -i option value" >&2
+                usage
+            fi
+            interval="$1"
+        ;;
+        -T)
+            proto=T
+            type=tcp
+        ;;
+        -U)
+            proto=U
+            type=udp
+        ;;
+        -c)
+            shift
+            if ! is_int "$1"; then
+                echo "error: $1: invalid -i option value" >&2
+                usage
+            fi
+            count="$1"
+        ;;
+        -h|--help)
+            usage
+        ;;
+        --)
+            shift
+            break
+        ;;
+        -*)
+            echo "error: $1: unknown option" >&2
+            usage
+        ;;
+        *)
+            break
+        ;;
+    esac
+    shift
+done
+
+# See basename.
+basename=`basename $0`
+case "$basename" in
+    tcping)
+        if [ "$proto" = 'U' ]; then
+            echo "error: -$proto option was specified but called from $basename?" >&2
+            exit 1
+        fi
+        proto=T
+        type=tcp
+    ;;
+    udping)
+        if [ "$proto" = 'T' ]; then
+            echo "error: -$proto option was specified but called from $basename?" >&2
+            exit 1
+        fi
+        proto=U
+        type=udp
+    ;;
+esac
+
+# Check root privileges for UDP ping.
+if [ "$type" = 'udp' -a "`id -u`" -ne 0 ]; then
+    echo 'error: you need root privileges for UDP ping.' >&2
+    exit 1
+fi
+
+# Do UDP/TCP ping.
+get_host() {
+    echo "$1" | sed -re 's/:.*//'
+}
+get_port() {
+    echo "$1" | sed -re 's/.*://'
+}
+do_expr() {
+    # Ignore 'expr' command exit status
+    # to avoid unexpected exit due to 'set -e'.
+    expr "$@" || true
+}
+
+[ $# -eq 0 ] && usage
+arg="$1"
+if ! (echo "$arg" | egrep '^[^:]+:[0-9]+$' >/dev/null); then
+    echo "error: $arg: invalid argument" >&2
+    usage
+fi
+host=`get_host "$arg"`
+port=`get_port "$arg"`
+type_toupper=`echo "$type" | tr '[a-z]' '[A-Z]'`
+i=0
+while :; do
+    # Save $before second(s) for $interval.
+    before=`date +%S`
+
+    # Do TCP/UDP ping.
+    echo -n "${type_toupper}ING $host ... "
+    nmap -P0 -s $proto -p $port $host | egrep "^$port/$type"'\s+(open|closed)'
+
+    # Break a loop if $i >= $count.
+    i=`expr $i + 1`
+    [ "$count" ] && [ "$i" -ge "$count" ] && break
+
+    # Sleep for a next ping as needed.
+    # TODO: Support millisecond?
+    after=`date +%S`
+    [ "$before" -gt "$after" ] && after=`do_expr "$after" + 60`    # wrap around
+    diff=`do_expr "$after" - "$before"`
+    if [ "$diff" -lt "$interval" ]; then
+        sleep `do_expr "$interval" - "$diff"`
+    fi
+done
